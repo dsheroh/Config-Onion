@@ -35,8 +35,8 @@ sub load {
   my $local = Config::Any->load_stems({ stems => [ map { "$_.local" } @_ ],
     use_ext => 1 });
 
-  $self->_set_main(merge $self->main, values %{$main->[0]});
-  $self->_set_local(merge $self->local, values %{$local->[0]});
+  $self->_set_main( merge $self->main,  map { values %$_ } @$main );
+  $self->_set_local(merge $self->local, map { values %$_ } @$local);
   $self->_reset_cfg;
   return $self;
 }
