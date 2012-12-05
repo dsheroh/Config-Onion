@@ -24,6 +24,11 @@ my $test_dir = $FindBin::Bin;
 }
 
 # override main conf file with local conf
+{
+  my $cfg = Config::Onion->load("$test_dir/conf/withlocal");
+  is($cfg->get->{main}, 1, 'local config does not clear main values');
+  is($cfg->get->{local}, 1, 'local config does override main values');
+}
 
 # load list of conf files
 

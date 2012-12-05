@@ -12,6 +12,7 @@ sub get { goto &cfg }
 
 has default => ( is => 'rwp' );
 has main    => ( is => 'rwp' );
+has local   => ( is => 'rwp' );
 
 sub add_default {
   my $self = shift;
@@ -30,16 +31,19 @@ sub load {
   my $self = shift;
   $self = $self->new unless ref $self;
 
-  my $main = Config::Any->load_stems( { stems => \@_ , use_ext => 1 } );
+  my $main  = Config::Any->load_stems({ stems => \@_ , use_ext => 1 });
+  my $local = Config::Any->load_stems({ stems => [ map { "$_.local" } @_ ],
+    use_ext => 1 });
 
   $self->_set_main(merge $self->main, values %{$main->[0]});
+  $self->_set_local(merge $self->local, values %{$local->[0]});
   $self->_reset_cfg;
   return $self;
 }
 
 sub _build_cfg {
   my $self = shift;
-  merge $self->default, $self->main;
+  merge $self->default, $self->main, $self->local;
 }
 
 1;
