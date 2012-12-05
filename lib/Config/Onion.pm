@@ -15,7 +15,11 @@ sub add_default {
   my $self = shift;
   $self = $self->new unless ref $self;
 
-  $self->_set_default(merge $self->default, { @_ });
+  my $default = $self->default;
+  $default = merge $default, shift while ref $_[0] eq 'HASH';
+  $default = merge $default, { @_ } if @_;
+
+  $self->_set_default($default);
   $self->_reset_cfg;
   return $self;
 }

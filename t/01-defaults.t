@@ -23,7 +23,7 @@ use Config::Onion;
 
 # override existing defaults with new defaults
 {
-  my $cfg = Config::Onion->add_default(foo => 3, xyzzy => 'plugh');
+  my $cfg = Config::Onion->add_default(foo => 3);
   $cfg->add_default(bar => 'baz');
   is($cfg->get->{foo}, 3, 'merge defaults preserves old values');
   is($cfg->get->{bar}, 'baz', 'merge defaults adds new values');
@@ -32,6 +32,14 @@ use Config::Onion;
 }
 
 # accept defaults as either hash or hashref(s)
+{
+  my $cfg = Config::Onion->add_default({ a => 1 });
+  is($cfg->get->{a}, 1, 'set defaults with hashref');
+  $cfg->add_default({ b => 2 }, { c => 3 }, d => 4);
+  is_deeply( $cfg->get, { a => 1, b => 2, c => 3, d => 4 },
+    'set defaults with mixed hashrefs and hash'
+  );
+}
 
 done_testing;
 
