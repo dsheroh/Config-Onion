@@ -5,22 +5,21 @@ use warnings;
 
 use Moo;
 
-has cfg => ( is => 'lazy' );
+has cfg => ( is => 'lazy', clearer => '_reset_cfg' );
+sub get { goto &cfg }
 
-sub get    { my $self = shift; $self->cfg; }
-sub conf   { my $self = shift; $self->cfg; }
-sub config { my $self = shift; $self->cfg; }
-
-sub _build_cfg {
-  my $self = shift;
-  $self->{default};
-}
+has default => ( is => 'rwp' );
 
 sub add_default {
   my $self = shift;
 
-  $self->{default} = { @_ };
-  delete $self->{cfg};
+  $self->_set_default({ @_ });
+  $self->_reset_cfg;
+}
+
+sub _build_cfg {
+  my $self = shift;
+  $self->default;
 }
 
 1;
