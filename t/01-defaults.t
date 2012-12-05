@@ -14,11 +14,16 @@ use Config::Onion;
   is_deeply($cfg->get, { foo => 1 }, 'retrieve full config');
 }
 
-# accept defaults as either hash or hashref
-
 # construct by adding default values
+{
+  my $cfg = Config::Onion->add_default(bar => 2);
+  isa_ok($cfg, 'Config::Onion', 'construct with add_default');
+  is($cfg->get->{bar}, 2, 'retrieve value after add_default construction');
+}
 
 # override existing defaults with new defaults
+
+# accept defaults as either hash or hashref(s)
 
 done_testing;
 

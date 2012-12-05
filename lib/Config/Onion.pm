@@ -12,9 +12,11 @@ has default => ( is => 'rwp' );
 
 sub add_default {
   my $self = shift;
+  $self = $self->new unless ref $self;
 
   $self->_set_default({ @_ });
   $self->_reset_cfg;
+  return $self;
 }
 
 sub _build_cfg {
