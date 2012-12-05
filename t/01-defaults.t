@@ -22,6 +22,14 @@ use Config::Onion;
 }
 
 # override existing defaults with new defaults
+{
+  my $cfg = Config::Onion->add_default(foo => 3, xyzzy => 'plugh');
+  $cfg->add_default(bar => 'baz');
+  is($cfg->get->{foo}, 3, 'merge defaults preserves old values');
+  is($cfg->get->{bar}, 'baz', 'merge defaults adds new values');
+  $cfg->add_default(foo => 'new');
+  is($cfg->get->{foo}, 'new', 'merge defaults overwrites old values');
+}
 
 # accept defaults as either hash or hashref(s)
 

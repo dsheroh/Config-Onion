@@ -3,6 +3,7 @@ package Config::Onion;
 use strict;
 use warnings;
 
+use Hash::Merge::Simple 'merge';
 use Moo;
 
 has cfg => ( is => 'lazy', clearer => '_reset_cfg' );
@@ -14,7 +15,7 @@ sub add_default {
   my $self = shift;
   $self = $self->new unless ref $self;
 
-  $self->_set_default({ @_ });
+  $self->_set_default(merge $self->default, { @_ });
   $self->_reset_cfg;
   return $self;
 }
