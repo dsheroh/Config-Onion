@@ -17,6 +17,11 @@ my $test_dir = $FindBin::Bin;
 }
 
 # construct by loading conf file
+{
+  my $cfg = Config::Onion->load("$test_dir/conf/basic");
+  isa_ok($cfg, 'Config::Onion', 'construct by loading config file');
+  is($cfg->get->{xyzzy}, 'plugh', 'get value after constucting via load');
+}
 
 # override main conf file with local conf
 

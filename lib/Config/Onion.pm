@@ -28,6 +28,7 @@ sub add_default {
 
 sub load {
   my $self = shift;
+  $self = $self->new unless ref $self;
 
   my $main = Config::Any->load_stems( { stems => \@_ , use_ext => 1 } );
 
