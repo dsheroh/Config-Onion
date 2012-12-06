@@ -8,9 +8,9 @@ use Config::Onion;
 use FindBin;
 my $test_dir = $FindBin::Bin;
 
-# construct with add_default, then load conf files over the defaults
+# construct with set_default, then load conf files over the defaults
 {
-  my $cfg = Config::Onion->add_default(foo => 'default');
+  my $cfg = Config::Onion->set_default(foo => 'default');
   $cfg->load("$test_dir/conf/basic");
   is($cfg->get->{foo}, 'bar', 'main config file overwrites defaults');
 

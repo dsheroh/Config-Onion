@@ -14,7 +14,7 @@ has default => ( is => 'rwp' );
 has main    => ( is => 'rwp' );
 has local   => ( is => 'rwp' );
 
-sub add_default {
+sub set_default {
   my $self = shift;
   $self = $self->new unless ref $self;
 
