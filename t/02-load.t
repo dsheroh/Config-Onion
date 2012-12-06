@@ -37,7 +37,13 @@ my $conf_dir = $FindBin::Bin . '/conf';
     [ 'plugh', 1, 1 ], 'multiple config files loaded correctly');
 }
 
-# load files by wildcard match
+# load files by glob match
+{
+  my $cfg = Config::Onion->load_glob("$conf_dir/*");
+  is($cfg->get->{joker}, 'wild',
+    'globbed load gives precedence to later files');
+  is($cfg->get->{local}, 1, 'globbed load gives precedence to local files');
+}
 
 done_testing;
 
