@@ -153,12 +153,15 @@ settings.
 =head1 PROPERTIES
 
 =head2 cfg
+
 =head2 get
 
 Returns the complete configuration as a hash reference.
 
 =head2 default
+
 =head2 main
+
 =head2 local
 
 These properties each return a single layer of the configuration.  This is

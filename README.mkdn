@@ -1,0 +1,108 @@
+# NAME
+
+Config::Onion - Layered configuration, because configs are like ogres
+
+# VERSION
+
+version 0.001
+
+# SYNOPSIS
+
+    my $cfg = Config::Onion->new;
+    my $cfg = Config::Onion->set_default(db => {name => 'foo', password => 'bar'});
+    my $cfg = Config::Onion->load('/etc/myapp', './myapp');
+    my $cfg = Config::Onion->load_glob('./plugins/*');
+
+    $cfg->set_default(font => 'Comic Sans');
+    $cfg->load('config');
+    $cfg->load_glob('conf.d/myapp*');
+
+    my $dbname = $cfg->get->{db}{name};
+    my $plain_hashref_conf = $cfg->get;
+    my $dbpassword = $plain_hashref_conf->{db}{password};
+
+# DESCRIPTION
+
+All too often, configuration is not a universal or one-time thing, yet most
+configuration-handling treats it as such.  Perhaps you can only load one config
+file.  If you can load more than one, you often have to load all of them at the
+same time or each is stored completely independently, preventing one from being
+able to override another.  Config::Onion changes that.
+
+Config::Onion stores all configuration settings in three layers: Defaults,
+Main, and Local.  Each layer can be added to as many times as you like.
+Within each layer, settings which are given multiple times will take the last
+specified value, while those which are not repeated will remain untouched.
+
+    $cfg->set_default(name => 'Arthur Dent', location => 'Earth');
+    $cfg->set_default(location => 'Magrathea');
+    # In the Default layer, 'name' is still 'Arthur Dent', but 'location' has
+    # been changed to 'Magrathea'.
+
+Regardless of the order in which they are set, values in Main will always
+override values in the Default layer and the Local layer always overrides both
+Default and Main.
+
+# METHODS
+
+## new
+
+Returns a new, empty configuration object.
+
+## load(@file\_stems)
+
+Loads files matching the given stems using `Config::Any-`load\_stems> into the
+Main layer.  Also concatenates ".local" to each stem and loads matching files
+into the Local layer.  e.g., `$cfg-`load('myapp')> would load `myapp.yml`
+into Main and `myapp.local.js` into Local.  All filename extensions supported
+by `Config::Any` are recognized along with their corresponding formats.
+
+## load\_glob(@globs)
+
+Uses the Perl `glob` function to expand each parameter into a list of
+filenames and loads each file using `Config::Any`.  Files whose names contain
+the string ".local." are loaded into the Local layer.  All other files are
+loaded into the Main layer.
+
+## set\_default(\[\\%settings,...,\] %settings)
+
+Imports `%settings` into the Default layer.  Accepts settings both as a plain
+hash and as hash references, but, if the two are mixed, all hash references
+must appear at the beginning of the parameter list, before any non-hashref
+settings.
+
+# PROPERTIES
+
+## cfg
+
+## get
+
+Returns the complete configuration as a hash reference.
+
+## default
+
+## main
+
+## local
+
+These properties each return a single layer of the configuration.  This is
+not likely to be useful other than for debugging.  For most other purposes,
+you probably want to use `get` instead.
+
+# BUGS AND LIMITATIONS
+
+No bugs have been reported.
+
+Please report any bugs or feature requests at
+[https://github.com/dsheroh/Config-Onion/issues](https://github.com/dsheroh/Config-Onion/issues)
+
+# AUTHOR
+
+Dave Sherohman <dsheroh@cpan.org>
+
+# COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2012 by Lund University Library.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
