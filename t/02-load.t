@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 
+use Test::Exception;
 use Test::More;
 
 use Config::Onion;
@@ -43,6 +44,15 @@ my $conf_dir = $FindBin::Bin . '/conf';
   is($cfg->get->{joker}, 'wild',
     'globbed load gives precedence to later files');
   is($cfg->get->{local}, 1, 'globbed load gives precedence to local files');
+}
+
+# GH5: handle load_glob correctly when nothing matches
+{
+  my $cfg;
+  lives_ok {
+    $cfg = Config::Onion->load_glob("$conf_dir/DoesNotExist");
+  } q(glob with no matches doesn't die);
+  is_deeply($cfg->get, {}, 'glob with no matches loads nothing');
 }
 
 done_testing;

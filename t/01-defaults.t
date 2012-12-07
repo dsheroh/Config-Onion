@@ -1,9 +1,15 @@
 use strict;
 use warnings;
 
+use Test::Exception;
 use Test::More;
 
 use Config::Onion;
+
+# GH5: don't die if config is empty
+{
+  lives_ok { Config::Onion->new->get } q(empty config isn't fatal);
+}
 
 # construct bare, then add/retrieve default values
 {

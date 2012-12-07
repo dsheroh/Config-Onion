@@ -74,7 +74,7 @@ sub _add_loaded {
 
 sub _build_cfg {
   my $self = shift;
-  merge $self->default, $self->main, $self->local;
+  merge $self->default || {}, $self->main, $self->local;
 }
 
 sub _ca_opts { ( use_ext => 1 ) }
