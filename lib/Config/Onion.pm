@@ -3,6 +3,8 @@ package Config::Onion;
 use strict;
 use warnings;
 
+our $VERSION = 0.002;
+
 use Config::Any;
 use Hash::Merge::Simple 'merge';
 use Moo;
