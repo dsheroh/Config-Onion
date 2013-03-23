@@ -4,7 +4,7 @@ Config::Onion - Layered configuration, because configs are like ogres
 
 # VERSION
 
-version 0.001
+version 0.003
 
 # SYNOPSIS
 
@@ -51,11 +51,12 @@ Returns a new, empty configuration object.
 
 ## load(@file\_stems)
 
-Loads files matching the given stems using `Config::Any-`load\_stems> into the
-Main layer.  Also concatenates ".local" to each stem and loads matching files
-into the Local layer.  e.g., `$cfg-`load('myapp')> would load `myapp.yml`
-into Main and `myapp.local.js` into Local.  All filename extensions supported
-by `Config::Any` are recognized along with their corresponding formats.
+Loads files matching the given stems using `Config::Any->load_stems` into
+the Main layer.  Also concatenates ".local" to each stem and loads matching
+files into the Local layer.  e.g., `$cfg->load('myapp')` would load
+`myapp.yml` into Main and `myapp.local.js` into Local.  All filename
+extensions supported by `Config::Any` are recognized along with their
+corresponding formats.
 
 ## load\_glob(@globs)
 
