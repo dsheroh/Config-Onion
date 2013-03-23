@@ -132,11 +132,12 @@ Returns a new, empty configuration object.
 
 =head2 load(@file_stems)
 
-Loads files matching the given stems using C<Config::Any->load_stems> into the
-Main layer.  Also concatenates ".local" to each stem and loads matching files
-into the Local layer.  e.g., C<$cfg->load('myapp')> would load C<myapp.yml>
-into Main and C<myapp.local.js> into Local.  All filename extensions supported
-by C<Config::Any> are recognized along with their corresponding formats.
+Loads files matching the given stems using C<< Config::Any->load_stems >> into
+the Main layer.  Also concatenates ".local" to each stem and loads matching
+files into the Local layer.  e.g., C<< $cfg->load('myapp') >> would load
+C<myapp.yml> into Main and C<myapp.local.js> into Local.  All filename
+extensions supported by C<Config::Any> are recognized along with their
+corresponding formats.
 
 =head2 load_glob(@globs)
 
