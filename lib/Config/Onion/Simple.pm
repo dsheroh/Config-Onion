@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use 5.010;
 
-our $VERSION = 0.003;
+our $VERSION = 1.000;
 
 use Config::Onion;
 

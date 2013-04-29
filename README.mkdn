@@ -4,7 +4,7 @@ Config::Onion - Layered configuration, because configs are like ogres
 
 # VERSION
 
-version 0.003
+version 1.000
 
 # SYNOPSIS
 
@@ -16,6 +16,7 @@ version 0.003
     $cfg->set_default(font => 'Comic Sans');
     $cfg->load('config');
     $cfg->load_glob('conf.d/myapp*');
+    $cfg->set_override(font => 'Arial');
 
     my $dbname = $cfg->get->{db}{name};
     my $plain_hashref_conf = $cfg->get;
@@ -29,10 +30,10 @@ file.  If you can load more than one, you often have to load all of them at the
 same time or each is stored completely independently, preventing one from being
 able to override another.  Config::Onion changes that.
 
-Config::Onion stores all configuration settings in three layers: Defaults,
-Main, and Local.  Each layer can be added to as many times as you like.
-Within each layer, settings which are given multiple times will take the last
-specified value, while those which are not repeated will remain untouched.
+Config::Onion stores all configuration settings in four layers: Defaults,
+Main, Local, and Override.  Each layer can be added to as many times as you
+like.  Within each layer, settings which are given multiple times will take the
+last specified value, while those which are not repeated will remain untouched.
 
     $cfg->set_default(name => 'Arthur Dent', location => 'Earth');
     $cfg->set_default(location => 'Magrathea');
@@ -40,70 +41,94 @@ specified value, while those which are not repeated will remain untouched.
     # been changed to 'Magrathea'.
 
 Regardless of the order in which they are set, values in Main will always
-override values in the Default layer and the Local layer always overrides both
-Default and Main.
+override values in the Default layer, the Local layer always overrides both
+Default and Main, and the Override layer overrides all the others.
 
-# METHODS
+The design intent for each later is:
 
-## new
+- Default
 
-Returns a new, empty configuration object.
+    Hardcoded default values to be used when no further configuration is present
 
-## load(@file\_stems)
+- Main
 
-Loads files matching the given stems using `Config::Any->load_stems` into
-the Main layer.  Also concatenates ".local" to each stem and loads matching
-files into the Local layer.  e.g., `$cfg->load('myapp')` would load
-`myapp.yml` into Main and `myapp.local.js` into Local.  All filename
-extensions supported by `Config::Any` are recognized along with their
-corresponding formats.
+    Values loaded from standard configuration files shipped with the application
 
-## load\_glob(@globs)
+- Local
 
-Uses the Perl `glob` function to expand each parameter into a list of
-filenames and loads each file using `Config::Any`.  Files whose names contain
-the string ".local." are loaded into the Local layer.  All other files are
-loaded into the Main layer.
+    Values loaded from local configuration files which are kept separate to prevent
+    them from being overwritten by application upgrades, etc.
 
-## set\_default(\[\\%settings,...,\] %settings)
+- Override
 
-Imports `%settings` into the Default layer.  Accepts settings both as a plain
-hash and as hash references, but, if the two are mixed, all hash references
-must appear at the beginning of the parameter list, before any non-hashref
-settings.
+    Settings provided at run-time which take precendence over all configuration
+    files, such as settings provided via command line switches
 
-# PROPERTIES
+    # METHODS
 
-## cfg
+    ## new
 
-## get
+    Returns a new, empty configuration object.
 
-Returns the complete configuration as a hash reference.
+    ## load(@file\_stems)
 
-## default
+    Loads files matching the given stems using `Config::Any->load_stems` into
+    the Main layer.  Also concatenates ".local" to each stem and loads matching
+    files into the Local layer.  e.g., `$cfg->load('myapp')` would load
+    `myapp.yml` into Main and `myapp.local.js` into Local.  All filename
+    extensions supported by `Config::Any` are recognized along with their
+    corresponding formats.
 
-## main
+    ## load\_glob(@globs)
 
-## local
+    Uses the Perl `glob` function to expand each parameter into a list of
+    filenames and loads each file using `Config::Any`.  Files whose names contain
+    the string ".local." are loaded into the Local layer.  All other files are
+    loaded into the Main layer.
 
-These properties each return a single layer of the configuration.  This is
-not likely to be useful other than for debugging.  For most other purposes,
-you probably want to use `get` instead.
+    ## set\_default(\[\\%settings,...,\] %settings)
 
-# BUGS AND LIMITATIONS
+    ## set\_override(\[\\%settings,...,\] %settings)
 
-No bugs have been reported.
+    Imports `%settings` into the Default or Override layer.  Accepts settings both
+    as a plain hash and as hash references, but, if the two are mixed, all hash
+    references must appear at the beginning of the parameter list, before any
+    non-hashref settings.
 
-Please report any bugs or feature requests at
-[https://github.com/dsheroh/Config-Onion/issues](https://github.com/dsheroh/Config-Onion/issues)
+    # PROPERTIES
 
-# AUTHOR
+    ## cfg
 
-Dave Sherohman <dsheroh@cpan.org>
+    ## get
 
-# COPYRIGHT AND LICENSE
+    Returns the complete configuration as a hash reference.
 
-This software is copyright (c) 2012 by Lund University Library.
+    ## default
 
-This is free software; you can redistribute it and/or modify it under
-the same terms as the Perl 5 programming language system itself.
+    ## main
+
+    ## local
+
+    ## override
+
+    These properties each return a single layer of the configuration.  This is
+    not likely to be useful other than for debugging.  For most other purposes,
+    you probably want to use `get` instead.
+
+    # BUGS AND LIMITATIONS
+
+    No bugs have been reported.
+
+    Please report any bugs or feature requests at
+    [https://github.com/dsheroh/Config-Onion/issues](https://github.com/dsheroh/Config-Onion/issues)
+
+    # AUTHOR
+
+    Dave Sherohman <dsheroh@cpan.org>
+
+    # COPYRIGHT AND LICENSE
+
+    This software is copyright (c) 2013 by Lund University Library.
+
+    This is free software; you can redistribute it and/or modify it under
+    the same terms as the Perl 5 programming language system itself.

@@ -3,7 +3,7 @@ package Config::Onion;
 use strict;
 use warnings;
 
-our $VERSION = 0.003;
+our $VERSION = 1.000;
 
 use Config::Any;
 use Hash::Merge::Simple 'merge';
