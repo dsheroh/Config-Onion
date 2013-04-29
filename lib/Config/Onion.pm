@@ -12,9 +12,8 @@ use Moo;
 has cfg => ( is => 'lazy', clearer => '_reset_cfg' );
 sub get { goto &cfg }
 
-has default => ( is => 'rwp' );
-has main    => ( is => 'rwp' );
-has local   => ( is => 'rwp' );
+has [qw( default main local override )]
+  => ( is => 'rwp', default => sub { {} } );
 
 sub set_default {
   my $self = shift;
@@ -25,6 +24,19 @@ sub set_default {
   $default = merge $default, { @_ } if @_;
 
   $self->_set_default($default);
+  $self->_reset_cfg;
+  return $self;
+}
+
+sub set_override {
+  my $self = shift;
+  $self = $self->new unless ref $self;
+
+  my $override = $self->override;
+  $override = merge $override, shift while ref $_[0] eq 'HASH';
+  $override = merge $override, { @_ } if @_;
+
+  $self->_set_override($override);
   $self->_reset_cfg;
   return $self;
 }
@@ -76,7 +88,7 @@ sub _add_loaded {
 
 sub _build_cfg {
   my $self = shift;
-  merge $self->default || {}, $self->main, $self->local;
+  merge $self->default, $self->main, $self->local, $self->override;
 }
 
 sub _ca_opts { ( use_ext => 1 ) }
@@ -97,6 +109,7 @@ __END__
   $cfg->set_default(font => 'Comic Sans');
   $cfg->load('config');
   $cfg->load_glob('conf.d/myapp*');
+  $cfg->set_override(font => 'Arial');
 
   my $dbname = $cfg->get->{db}{name};
   my $plain_hashref_conf = $cfg->get;
@@ -110,10 +123,10 @@ file.  If you can load more than one, you often have to load all of them at the
 same time or each is stored completely independently, preventing one from being
 able to override another.  Config::Onion changes that.
 
-Config::Onion stores all configuration settings in three layers: Defaults,
-Main, and Local.  Each layer can be added to as many times as you like.
-Within each layer, settings which are given multiple times will take the last
-specified value, while those which are not repeated will remain untouched.
+Config::Onion stores all configuration settings in four layers: Defaults,
+Main, Local, and Override.  Each layer can be added to as many times as you
+like.  Within each layer, settings which are given multiple times will take the
+last specified value, while those which are not repeated will remain untouched.
 
   $cfg->set_default(name => 'Arthur Dent', location => 'Earth');
   $cfg->set_default(location => 'Magrathea');
@@ -121,8 +134,30 @@ specified value, while those which are not repeated will remain untouched.
   # been changed to 'Magrathea'.
 
 Regardless of the order in which they are set, values in Main will always
-override values in the Default layer and the Local layer always overrides both
-Default and Main.
+override values in the Default layer, the Local layer always overrides both
+Default and Main, and the Override layer overrides all the others.
+
+The design intent for each layer is:
+
+=over 4
+
+=item * Default
+
+Hardcoded default values to be used when no further configuration is present
+
+=item * Main
+
+Values loaded from standard configuration files shipped with the application
+
+=item * Local
+
+Values loaded from local configuration files which are kept separate to prevent
+them from being overwritten by application upgrades, etc.
+
+=item * Override
+
+Settings provided at run-time which take precendence over all configuration
+files, such as settings provided via command line switches
 
 =head1 METHODS
 
@@ -148,10 +183,12 @@ loaded into the Main layer.
 
 =head2 set_default([\%settings,...,] %settings)
 
-Imports C<%settings> into the Default layer.  Accepts settings both as a plain
-hash and as hash references, but, if the two are mixed, all hash references
-must appear at the beginning of the parameter list, before any non-hashref
-settings.
+=head2 set_override([\%settings,...,] %settings)
+
+Imports C<%settings> into the Default or Override layer.  Accepts settings both
+as a plain hash and as hash references, but, if the two are mixed, all hash
+references must appear at the beginning of the parameter list, before any
+non-hashref settings.
 
 =head1 PROPERTIES
 
@@ -166,6 +203,8 @@ Returns the complete configuration as a hash reference.
 =head2 main
 
 =head2 local
+
+=head2 override
 
 These properties each return a single layer of the configuration.  This is
 not likely to be useful other than for debugging.  For most other purposes,
