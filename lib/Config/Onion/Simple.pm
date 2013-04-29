@@ -2,7 +2,6 @@ package Config::Onion::Simple;
 
 use strict;
 use warnings;
-use 5.010;
 
 our $VERSION = 1.000;
 
@@ -24,7 +23,7 @@ my $cfg_obj;
 
 sub cfg { cfg_obj()->get }
 
-sub cfg_obj { $cfg_obj //= Config::Onion->new }
+sub cfg_obj { $cfg_obj ||= Config::Onion->new }
 
 1;
 
