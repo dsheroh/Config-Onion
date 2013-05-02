@@ -1,3 +1,5 @@
+1.001   2013-04-02
+- Added missing test-depends on YAML
 
 1.000   2013-04-29
 - Added Override layer
