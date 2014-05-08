@@ -197,6 +197,7 @@ them from being overwritten by application upgrades, etc.
 Settings provided at run-time which take precendence over all configuration
 files, such as settings provided via command line switches
 
+=back
 
 =head1 METHODS
 
