@@ -1,11 +1,3 @@
-# NAME
-
-Config::Onion - Layered configuration, because configs are like ogres
-
-# VERSION
-
-version 1.000
-
 # SYNOPSIS
 
     my $cfg = Config::Onion->new;
@@ -21,6 +13,8 @@ version 1.000
     my $dbname = $cfg->get->{db}{name};
     my $plain_hashref_conf = $cfg->get;
     my $dbpassword = $plain_hashref_conf->{db}{password};
+
+
 
 # DESCRIPTION
 
@@ -44,7 +38,7 @@ Regardless of the order in which they are set, values in Main will always
 override values in the Default layer, the Local layer always overrides both
 Default and Main, and the Override layer overrides all the others.
 
-The design intent for each later is:
+The design intent for each layer is:
 
 - Default
 
@@ -63,6 +57,8 @@ The design intent for each later is:
 
     Settings provided at run-time which take precendence over all configuration
     files, such as settings provided via command line switches
+
+
 
     # METHODS
 
@@ -95,6 +91,8 @@ The design intent for each later is:
     references must appear at the beginning of the parameter list, before any
     non-hashref settings.
 
+
+
     # PROPERTIES
 
     ## cfg
@@ -115,20 +113,56 @@ The design intent for each later is:
     not likely to be useful other than for debugging.  For most other purposes,
     you probably want to use `get` instead.
 
+
+
+    # CONFIGURATION
+
+    ## $Config::Onion::prefix\_key
+
+    If set, enables the Prefix Structures functionality described below.  The
+    value of `$Config::Onion::prefix_key` specifies the name of the key under
+    which the prefix structure may be found.
+
+    Default value is `undef`.
+
+
+
+    # Prefix Structures
+
+    If you find that your configuration structure is becoming unwieldy due to
+    deeply-nested structures, you can define a file-specific "prefix structure"
+    and all other settings within that file will be loaded as children of the
+    prefix structure.  For example, if your main program uses
+
+        $Config::Onion::prefix_key = '_prefix';
+        my $cfg = Config::Onion->load("myapp/config");
+
+    and `myapp/config.yml` contains
+
+        _prefix:
+          foo:
+            bar:
+
+        baz: 1
+
+    then `$cfg` will contain the configuration
+
+        foo:
+          bar:
+            baz: 1
+
+    Note that the top-level `$Config::Onion::prefix_key` is removed.
+
+    There are some limitations on the prefix structure, in order to keep it sane
+    and deterministic.  First, the prefix structure may only contain hashes.
+    Second, each hash must contain exactly one key.  Finally, the value associated
+    with the final key must be left undefined.
+
+
+
     # BUGS AND LIMITATIONS
 
     No bugs have been reported.
 
     Please report any bugs or feature requests at
     [https://github.com/dsheroh/Config-Onion/issues](https://github.com/dsheroh/Config-Onion/issues)
-
-    # AUTHOR
-
-    Dave Sherohman <dsheroh@cpan.org>
-
-    # COPYRIGHT AND LICENSE
-
-    This software is copyright (c) 2013 by Lund University Library.
-
-    This is free software; you can redistribute it and/or modify it under
-    the same terms as the Perl 5 programming language system itself.

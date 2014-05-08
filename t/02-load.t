@@ -41,6 +41,7 @@ my $conf_dir = $FindBin::Bin . '/conf';
 # load files by glob match
 {
   my $cfg = Config::Onion->load_glob("$conf_dir/*");
+  ok(defined $cfg->get->{joker}, 'load multiple configs');
   is($cfg->get->{joker}, 'wild',
     'globbed load gives precedence to later files');
   is($cfg->get->{local}, 1, 'globbed load gives precedence to local files');
@@ -53,6 +54,22 @@ my $conf_dir = $FindBin::Bin . '/conf';
     $cfg = Config::Onion->load_glob("$conf_dir/DoesNotExist");
   } q(glob with no matches doesn't die);
   is_deeply($cfg->get, {}, 'glob with no matches loads nothing');
+}
+
+# prefix structures
+{
+  my $cfg = Config::Onion->load("$conf_dir/prefix");
+  is($cfg->get->{deep_key}, 1, 'prefix structure disabled by default');
+  ok(exists $cfg->get->{_prefix}, 'prefix key present by default');
+
+  $Config::Onion::prefix_key = '_prefix';
+  $cfg = Config::Onion->load("$conf_dir/prefix");
+  is($cfg->get->{some}{levels}{down}{deep_key}, 1,
+    'key found in prefix structure');
+  is($cfg->get->{some}{levels}{down}{deep}{subkey}, 2,
+    'subkey found in prefix structure');
+  ok(!defined $cfg->get->{_prefix}, 'prefix key replaced by prefix structure');
+  ok(!defined $cfg->get->{deep}, 'non-prefix keys cleared from config');
 }
 
 done_testing;

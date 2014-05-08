@@ -1,3 +1,6 @@
+1.002   2014-05-08
+- Added "prefix structure" capability
+
 1.001   2013-04-02
 - Added missing test-depends on YAML
 

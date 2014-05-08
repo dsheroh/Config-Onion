@@ -3,7 +3,7 @@ package Config::Onion;
 use strict;
 use warnings;
 
-our $VERSION = 1.000;
+our $VERSION = 1.002;
 
 use Config::Any;
 use Hash::Merge::Simple 'merge';
@@ -14,6 +14,8 @@ sub get { goto &cfg }
 
 has [qw( default main local override )]
   => ( is => 'rwp', default => sub { {} } );
+
+our $prefix_key;
 
 sub set_default {
   my $self = shift;
@@ -71,6 +73,7 @@ sub load_glob {
   my $local = Config::Any->load_files({ files => \@local_files, %ca_opts });
 
   $self->_add_loaded($main, $local);
+
   return $self;
 }
 
@@ -78,10 +81,17 @@ sub _add_loaded {
   my $self = shift;
   my ($main, $local) = @_;
 
-  $self->_set_main( merge $self->main,  map { values %$_ } @$main )
-    if @$main;
-  $self->_set_local(merge $self->local, map { values %$_ } @$local)
-    if @$local;
+  my @main;  @main  = map { values %$_ } @$main  if @$main;
+  my @local; @local = map { values %$_ } @$local if @$local;
+
+  if ($prefix_key) {
+    for my $cfg (@main, @local) {
+      _replace_prefix_key($cfg) if exists $cfg->{$prefix_key};
+    }
+  }
+
+  $self->_set_main( merge $self->main,  @main);
+  $self->_set_local(merge $self->local, @local);
 
   $self->_reset_cfg;
 }
@@ -92,6 +102,33 @@ sub _build_cfg {
 }
 
 sub _ca_opts { ( use_ext => 1 ) }
+
+sub _replace_prefix_key {
+  my $cfg = shift;
+
+  my $top_key;
+  my $root = $cfg->{$prefix_key};
+  while (1) {
+    die "Config::Onion prefix key structure may not branch" if keys %$root > 1;
+    $top_key //= (keys %$root)[0];
+    my $child = (values %$root)[0];
+    unless ($child) {
+      my $key = (keys %$root)[0];
+      $root = $root->{$key} = {};
+      last;
+    }
+    $root = $child;
+  }
+
+  my $new = $cfg->{$prefix_key}{$top_key};
+  delete $cfg->{$prefix_key};
+
+  for (keys %$cfg) {
+    $root->{$_} = $cfg->{$_};
+    delete $cfg->{$_};
+  }
+  $cfg->{$top_key} = $new;
+}
 
 1;
 
@@ -114,6 +151,7 @@ __END__
   my $dbname = $cfg->get->{db}{name};
   my $plain_hashref_conf = $cfg->get;
   my $dbpassword = $plain_hashref_conf->{db}{password};
+
 
 =head1 DESCRIPTION
 
@@ -159,6 +197,7 @@ them from being overwritten by application upgrades, etc.
 Settings provided at run-time which take precendence over all configuration
 files, such as settings provided via command line switches
 
+
 =head1 METHODS
 
 =head2 new
@@ -190,6 +229,7 @@ as a plain hash and as hash references, but, if the two are mixed, all hash
 references must appear at the beginning of the parameter list, before any
 non-hashref settings.
 
+
 =head1 PROPERTIES
 
 =head2 cfg
@@ -209,6 +249,49 @@ Returns the complete configuration as a hash reference.
 These properties each return a single layer of the configuration.  This is
 not likely to be useful other than for debugging.  For most other purposes,
 you probably want to use C<get> instead.
+
+
+=head1 CONFIGURATION
+
+=head2 $Config::Onion::prefix_key
+
+If set, enables the Prefix Structures functionality described below.  The
+value of C<$Config::Onion::prefix_key> specifies the name of the key under
+which the prefix structure may be found.
+
+Default value is C<undef>.
+
+
+=head1 Prefix Structures
+
+If you find that your configuration structure is becoming unwieldy due to
+deeply-nested structures, you can define a file-specific "prefix structure"
+and all other settings within that file will be loaded as children of the
+prefix structure.  For example, if your main program uses
+
+  $Config::Onion::prefix_key = '_prefix';
+  my $cfg = Config::Onion->load("myapp/config");
+
+and C<myapp/config.yml> contains
+
+  _prefix:
+    foo:
+      bar:
+
+  baz: 1
+
+then C<$cfg> will contain the configuration
+
+  foo:
+    bar:
+      baz: 1
+
+Note that the top-level C<$Config::Onion::prefix_key> is removed.
+
+There are some limitations on the prefix structure, in order to keep it sane
+and deterministic.  First, the prefix structure may only contain hashes.
+Second, each hash must contain exactly one key.  Finally, the value associated
+with the final key must be left undefined.
 
 
 =head1 BUGS AND LIMITATIONS
