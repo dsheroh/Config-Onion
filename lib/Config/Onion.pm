@@ -3,19 +3,18 @@ package Config::Onion;
 use strict;
 use warnings;
 
-our $VERSION = 1.003;
+our $VERSION = 1.004;
 
 use Config::Any;
 use Hash::Merge::Simple 'merge';
 use Moo;
 
 has cfg => ( is => 'lazy', clearer => '_reset_cfg' );
+has prefix_key => ( is => 'rw' );
 sub get { goto &cfg }
 
 has [qw( default main local override )]
   => ( is => 'rwp', default => sub { {} } );
-
-our $prefix_key;
 
 sub set_default {
   my $self = shift;
@@ -84,9 +83,9 @@ sub _add_loaded {
   my @main;  @main  = map { values %$_ } @$main  if @$main;
   my @local; @local = map { values %$_ } @$local if @$local;
 
-  if ($prefix_key) {
+  if ($self->prefix_key) {
     for my $cfg (@main, @local) {
-      _replace_prefix_key($cfg) if exists $cfg->{$prefix_key};
+      $self->_replace_prefix_key($cfg) if exists $cfg->{$self->prefix_key};
     }
   }
 
@@ -104,10 +103,11 @@ sub _build_cfg {
 sub _ca_opts { ( use_ext => 1 ) }
 
 sub _replace_prefix_key {
+  my $self = shift;
   my $cfg = shift;
 
   my $top_key;
-  my $root = $cfg->{$prefix_key};
+  my $root = $cfg->{$self->prefix_key};
   while (1) {
     die "Config::Onion prefix key structure may not branch" if keys %$root > 1;
     $top_key ||= (keys %$root)[0];
@@ -120,8 +120,8 @@ sub _replace_prefix_key {
     $root = $child;
   }
 
-  my $new = $cfg->{$prefix_key}{$top_key};
-  delete $cfg->{$prefix_key};
+  my $new = $cfg->{$self->prefix_key}{$top_key};
+  delete $cfg->{$self->prefix_key};
 
   for (keys %$cfg) {
     $root->{$_} = $cfg->{$_};
@@ -252,13 +252,11 @@ not likely to be useful other than for debugging.  For most other purposes,
 you probably want to use C<get> instead.
 
 
-=head1 CONFIGURATION
+=head2 prefix_key
 
-=head2 $Config::Onion::prefix_key
-
-If set, enables the Prefix Structures functionality described below.  The
-value of C<$Config::Onion::prefix_key> specifies the name of the key under
-which the prefix structure may be found.
+If set, enables the Prefix Structures functionality described below when using
+the C<load> or C<load_glob> methods.  The value of C<prefix_key> specifies the
+name of the key under which the prefix structure may be found.
 
 Default value is C<undef>.
 
@@ -270,8 +268,8 @@ deeply-nested structures, you can define a file-specific "prefix structure"
 and all other settings within that file will be loaded as children of the
 prefix structure.  For example, if your main program uses
 
-  $Config::Onion::prefix_key = '_prefix';
-  my $cfg = Config::Onion->load("myapp/config");
+  $cfg = Config::Onion->new(prefix_key => '_prefix');
+  $cfg->load("myapp/config");
 
 and C<myapp/config.yml> contains
 
@@ -287,7 +285,7 @@ then C<$cfg> will contain the configuration
     bar:
       baz: 1
 
-Note that the top-level C<$Config::Onion::prefix_key> is removed.
+Note that the top-level C<prefix_key> is removed.
 
 There are some limitations on the prefix structure, in order to keep it sane
 and deterministic.  First, the prefix structure may only contain hashes.
@@ -301,3 +299,4 @@ No bugs have been reported.
 
 Please report any bugs or feature requests at
 L<https://github.com/dsheroh/Config-Onion/issues>
+

@@ -62,8 +62,8 @@ my $conf_dir = $FindBin::Bin . '/conf';
   is($cfg->get->{deep_key}, 1, 'prefix structure disabled by default');
   ok(exists $cfg->get->{_prefix}, 'prefix key present by default');
 
-  $Config::Onion::prefix_key = '_prefix';
-  $cfg = Config::Onion->load("$conf_dir/prefix");
+  $cfg = Config::Onion->new(prefix_key => '_prefix');
+  $cfg->load("$conf_dir/prefix");
   is($cfg->get->{some}{levels}{down}{deep_key}, 1,
     'key found in prefix structure');
   is($cfg->get->{some}{levels}{down}{deep}{subkey}, 2,

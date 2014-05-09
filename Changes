@@ -1,3 +1,6 @@
+1.004   2014-05-09
+- Changed prefix_key from a global setting to a per-instance property
+
 1.003   2014-05-09
 - Fixed Perl 5.8 compatibility
 - Fixed POD syntax error
