@@ -110,7 +110,7 @@ sub _replace_prefix_key {
   my $root = $cfg->{$prefix_key};
   while (1) {
     die "Config::Onion prefix key structure may not branch" if keys %$root > 1;
-    $top_key //= (keys %$root)[0];
+    $top_key ||= (keys %$root)[0];
     my $child = (values %$root)[0];
     unless ($child) {
       my $key = (keys %$root)[0];
