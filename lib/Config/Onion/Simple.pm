@@ -3,7 +3,7 @@ package Config::Onion::Simple;
 use strict;
 use warnings;
 
-our $VERSION = 1.002;
+our $VERSION = 1.003;
 
 use Config::Onion;
 
