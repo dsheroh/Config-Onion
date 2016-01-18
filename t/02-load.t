@@ -72,5 +72,11 @@ my $conf_dir = $FindBin::Bin . '/conf';
   ok(!defined $cfg->get->{deep}, 'non-prefix keys cleared from config');
 }
 
+# pass parameter to Config::Any, overrides use_ext
+{
+  my $cfg = Config::Onion->load_glob("$conf_dir/basic*", {force_plugins => ['Config::Any::YAML']});
+  is($cfg->get->{joker}, 'one', 'use_ext was not used');
+}
+
 done_testing;
 
