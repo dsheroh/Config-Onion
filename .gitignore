@@ -3,3 +3,5 @@
 .build
 Config-Onion-*
 
+.includepath
+*.project

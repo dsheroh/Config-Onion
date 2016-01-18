@@ -3,7 +3,7 @@ package Config::Onion;
 use strict;
 use warnings;
 
-our $VERSION = 1.004;
+our $VERSION = 1.005;
 
 use Config::Any;
 use Hash::Merge::Simple 'merge';
@@ -46,10 +46,20 @@ sub load {
   my $self = shift;
   $self = $self->new unless ref $self;
 
-  my %ca_opts = $self->_ca_opts;
-  my $main  = Config::Any->load_stems({ stems => \@_ , %ca_opts });
+  my $ca_opts = $self->_ca_opts;
+  # user passed in a hash ref as the last argument.
+  if (ref $_[$#_] eq "HASH") {
+    # allow user to override the default use_ext => 1
+    delete $ca_opts->{use_ext} unless exists $_[$#_]{use_ext};
+    # merge in any other options passed in
+    $ca_opts = merge $ca_opts, pop @_;
+    # ensure that flatten_to_hash feature that Config::Any supports is turned off
+    delete $ca_opts->{flatten_to_hash} if exists $ca_opts->{flatten_to_hash};
+  }
+
+  my $main  = Config::Any->load_stems({ stems => \@_ , %$ca_opts });
   my $local = Config::Any->load_stems({ stems => [ map { "$_.local" } @_ ],
-    %ca_opts });
+    %$ca_opts });
 
   $self->_add_loaded($main, $local);
   return $self;
@@ -59,6 +69,17 @@ sub load_glob {
   my $self = shift;
   $self = $self->new unless ref $self;
 
+  my $ca_opts = $self->_ca_opts;
+  # user passed in a hash ref as the last argument.
+  if (ref $_[$#_] eq "HASH") {
+    # allow user to override the default use_ext => 1
+    delete $ca_opts->{use_ext} unless exists $_[$#_]{use_ext};
+    # merge in any other options passed in
+    $ca_opts = merge $ca_opts, pop @_;
+    # ensure that flatten_to_hash feature that Config::Any supports is turned off
+    delete $ca_opts->{flatten_to_hash} if exists $ca_opts->{flatten_to_hash};
+  }
+
   my (@main_files, @local_files);
   for my $globspec (@_) {
     for (glob $globspec) {
@@ -67,9 +88,8 @@ sub load_glob {
     }
   }
 
-  my %ca_opts = $self->_ca_opts;
-  my $main  = Config::Any->load_files({ files => \@main_files,  %ca_opts });
-  my $local = Config::Any->load_files({ files => \@local_files, %ca_opts });
+  my $main  = Config::Any->load_files({ files => \@main_files,  %$ca_opts });
+  my $local = Config::Any->load_files({ files => \@local_files, %$ca_opts });
 
   $self->_add_loaded($main, $local);
 
@@ -100,7 +120,7 @@ sub _build_cfg {
   merge $self->default, $self->main, $self->local, $self->override;
 }
 
-sub _ca_opts { ( use_ext => 1 ) }
+sub _ca_opts { { use_ext => 1 } }
 
 sub _replace_prefix_key {
   my $self = shift;
@@ -141,7 +161,9 @@ __END__
   my $cfg = Config::Onion->new;
   my $cfg = Config::Onion->set_default(db => {name => 'foo', password => 'bar'});
   my $cfg = Config::Onion->load('/etc/myapp', './myapp');
+  my $cfg = Config::Onion->load('/etc/myapp', './myapp', {use_ext => 1, filter => \&filter});
   my $cfg = Config::Onion->load_glob('./plugins/*');
+  my $cfg = Config::Onion->load_glob('./plugins/*', {force_plugins => ['Config::Any::YAML']});
 
   $cfg->set_default(font => 'Comic Sans');
   $cfg->load('config');
@@ -206,6 +228,7 @@ files, such as settings provided via command line switches
 Returns a new, empty configuration object.
 
 =head2 load(@file_stems)
+=head2 load(@file\_stems, {...})
 
 Loads files matching the given stems using C<< Config::Any->load_stems >> into
 the Main layer.  Also concatenates ".local" to each stem and loads matching
@@ -214,12 +237,23 @@ C<myapp.yml> into Main and C<myapp.local.js> into Local.  All filename
 extensions supported by C<Config::Any> are recognized along with their
 corresponding formats.
 
+An optional hash ref final argument can be provided to override the default
+option C<< use_ext => 1 >> passed to C<Config::Any>.  All options supported by C<Config::Any>
+are supported except flatten_to_hash.  See C<< Config::Any->load_files >>
+documentation for available options.
+
 =head2 load_glob(@globs)
+=head2 load_glob(@globs, {...})
 
 Uses the Perl C<glob> function to expand each parameter into a list of
 filenames and loads each file using C<Config::Any>.  Files whose names contain
 the string ".local." are loaded into the Local layer.  All other files are
 loaded into the Main layer.
+
+An optional hash ref final argument can be provided to override the default
+option C<< use_ext => 1 >> passed to C<Config::Any>.  All options supported by C<Config::Any>
+are supported except flatten_to_hash.  See C<< Config::Any->load_files >>
+documentation for available options.
 
 =head2 set_default([\%settings,...,] %settings)
 
@@ -256,7 +290,7 @@ you probably want to use C<get> instead.
 
 If set, enables the Prefix Structures functionality described below when using
 the C<load> or C<load_glob> methods.  The value of C<prefix_key> specifies the
-name of the key under which the prefix structure may be found.
+name of the key under which the  prefix structure may be found.
 
 Default value is C<undef>.
 
