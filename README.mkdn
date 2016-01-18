@@ -3,9 +3,9 @@
     my $cfg = Config::Onion->new;
     my $cfg = Config::Onion->set_default(db => {name => 'foo', password => 'bar'});
     my $cfg = Config::Onion->load('/etc/myapp', './myapp');
-    my $cfg = Config::Onion->load('/etc/myapp', './myapp', {});
+    my $cfg = Config::Onion->load('/etc/myapp', './myapp', {use_ext => 1, filter => \&filter});
     my $cfg = Config::Onion->load_glob('./plugins/*');
-    my $cfg = Config::Onion->load_glob('./plugins/*', {filter => \&filter});
+    my $cfg = Config::Onion->load_glob('./plugins/*', {force_plugins => ['Config::Any::YAML']});
 
     $cfg->set_default(font => 'Comic Sans');
     $cfg->load('config');
