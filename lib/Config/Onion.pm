@@ -80,9 +80,18 @@ sub load_glob {
     delete $ca_opts->{flatten_to_hash} if exists $ca_opts->{flatten_to_hash};
   }
 
+  # if use_ext is on, we need to query Config::Any to see what extensions are allowed
+  my $ext_re = '';
+  if ($ca_opts->{use_ext}) {
+    my @exts = Config::Any->extensions();
+    $ext_re = '\.' . (shift @exts) . '$';
+    $ext_re .= "|\\.$_\$" foreach @exts;
+  }
+
   my (@main_files, @local_files);
   for my $globspec (@_) {
     for (glob $globspec) {
+      next if $ca_opts->{use_ext} && !/$ext_re/;
       if (/\.local\./) { push @local_files, $_ }
       else             { push @main_files,  $_ }
     }
