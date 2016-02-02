@@ -40,7 +40,7 @@ my $conf_dir = $FindBin::Bin . '/conf';
 
 # load files by glob match
 {
-  my $cfg = Config::Onion->load_glob("$conf_dir/*", {force_plugins => ['Config::Any::YAML']});
+  my $cfg = Config::Onion->load_glob("$conf_dir/*");
   ok(defined $cfg->get->{joker}, 'load multiple configs');
   is($cfg->get->{joker}, 'wild',
     'globbed load gives precedence to later files');
