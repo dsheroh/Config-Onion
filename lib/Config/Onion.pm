@@ -3,7 +3,7 @@ package Config::Onion;
 use strict;
 use warnings;
 
-our $VERSION = 1.006;
+our $VERSION = 1.007;
 
 use Config::Any;
 use Hash::Merge::Simple 'merge';
@@ -53,7 +53,8 @@ sub load {
     delete $ca_opts->{use_ext} unless exists $_[$#_]{use_ext};
     # merge in any other options passed in
     $ca_opts = merge $ca_opts, pop @_;
-    # ensure that flatten_to_hash feature that Config::Any supports is turned off
+    # ensure that flatten_to_hash feature that Config::Any supports is turned
+    # off
     delete $ca_opts->{flatten_to_hash} if exists $ca_opts->{flatten_to_hash};
   }
 
@@ -76,11 +77,13 @@ sub load_glob {
     delete $ca_opts->{use_ext} unless exists $_[$#_]{use_ext};
     # merge in any other options passed in
     $ca_opts = merge $ca_opts, pop @_;
-    # ensure that flatten_to_hash feature that Config::Any supports is turned off
+    # ensure that flatten_to_hash feature that Config::Any supports is turned
+    # off
     delete $ca_opts->{flatten_to_hash} if exists $ca_opts->{flatten_to_hash};
   }
 
-  # if use_ext is on, we need to query Config::Any to see what extensions are allowed
+  # if use_ext is on, we need to query Config::Any to see what extensions are
+  # allowed
   my $ext_re = '';
   if ($ca_opts->{use_ext}) {
     my @exts = Config::Any->extensions();
@@ -126,7 +129,22 @@ sub _add_loaded {
 
 sub _build_cfg {
   my $self = shift;
-  merge $self->default, $self->main, $self->local, $self->override;
+  my $cfg = merge $self->default, $self->main, $self->local, $self->override;
+
+  # remove any hash keys with a (merged) value of '!DELETE!'
+  my @nodes = $cfg;
+  while (my $curr = shift @nodes) {
+    for (keys %$curr) {
+      next unless defined $curr->{$_};
+      if ($curr->{$_} eq '!DELETE!') {
+        delete $curr->{$_};
+      } elsif (ref $curr->{$_} eq 'HASH') {
+        push @nodes, $curr->{$_};
+      }
+    }
+  }
+
+  return $cfg;
 }
 
 sub _ca_opts { { use_ext => 1 } }
@@ -229,6 +247,15 @@ Settings provided at run-time which take precendence over all configuration
 files, such as settings provided via command line switches
 
 =back
+
+If a higher-priority layer wishes to completely remove a hash entry made by a
+lower-priority layer (i.e., delete the hash key, not just set it to an empty
+value), it can do so by setting the value to "!DELETE!".  This only applies to
+hash entries, not array values, as the entire array already needs to be
+overwritten to make any changes to it.  Also, if, for some reason, the
+configuration contains objects, the contents of those objects will be ignored
+for the sake of encapsulation.  Only unblessed hashes are cleaned in this
+manner.
 
 =head1 METHODS
 

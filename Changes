@@ -1,3 +1,7 @@
+1.007   2016-10-13
+- Added ability to delete settings from hashes by overriding them with the
+  value "!DELETE!"
+
 1.006   2016-02-02
 - Workaround for Config::Any bug(?) in use_ext  (Docs state that it will ignore
   files with unrecognized extensions; actual behavior is to die)

@@ -58,6 +58,15 @@ The design intent for each layer is:
     Settings provided at run-time which take precendence over all configuration
     files, such as settings provided via command line switches
 
+If a higher-priority layer wishes to completely remove a hash entry made by a
+lower-priority layer (i.e., delete the hash key, not just set it to an empty
+value), it can do so by setting the value to "!DELETE!".  This only applies to
+hash entries, not array values, as the entire array already needs to be
+overwritten to make any changes to it.  Also, if, for some reason, the
+configuration contains objects, the contents of those objects will be ignored
+for the sake of encapsulation.  Only unblessed hashes are cleaned in this
+manner.
+
 # METHODS
 
 ## new
