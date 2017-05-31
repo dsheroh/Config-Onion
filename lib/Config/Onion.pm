@@ -264,6 +264,7 @@ manner.
 Returns a new, empty configuration object.
 
 =head2 load(@file_stems)
+
 =head2 load(@file\_stems, {...})
 
 Loads files matching the given stems using C<< Config::Any->load_stems >> into
@@ -279,6 +280,7 @@ are supported except flatten_to_hash.  See C<< Config::Any->load_files >>
 documentation for available options.
 
 =head2 load_glob(@globs)
+
 =head2 load_glob(@globs, {...})
 
 Uses the Perl C<glob> function to expand each parameter into a list of
@@ -369,4 +371,3 @@ No bugs have been reported.
 
 Please report any bugs or feature requests at
 L<https://github.com/dsheroh/Config-Onion/issues>
-
